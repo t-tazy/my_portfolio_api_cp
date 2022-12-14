@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"testing"
 )
@@ -11,13 +12,20 @@ import (
 // 別ゴルーチンでテスト対象のrun関数を実行しHTTPサーバーを起動
 // エンドポイントに対してGETリクエストを送信し、レスポンスを検証する
 func TestRun(t *testing.T) {
+	l, err := net.Listen("tcp", "localhost:0")
+	if err != nil {
+		t.Fatalf("failed to listen port %v", err)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	errCh := make(chan error)
 	go func() {
-		errCh <- run(ctx)
+		errCh <- run(ctx, l)
 	}()
 	in := "message"
-	rsp, err := http.Get("http://localhost:18080/" + in)
+	// どのポートでリッスンしているのか確認
+	url := fmt.Sprintf("http://%s/%s", l.Addr().String(), in)
+	t.Logf("try request to %q", url)
+	rsp, err := http.Get(url)
 	if err != nil {
 		t.Errorf("failed to get: %+v", err)
 	}
