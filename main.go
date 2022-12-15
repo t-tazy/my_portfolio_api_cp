@@ -7,27 +7,30 @@ import (
 	"net"
 	"net/http"
 	"os"
+
+	"github.com/t-tazy/my_portfolio_api/config"
 )
 
 // メインプロセスのrun関数を実行する
-// コマンドライン引数でサーバーのポート番号を指定する
 func main() {
-	if len(os.Args) != 2 {
-		log.Printf("need port number\n")
-		os.Exit(1)
-	}
-	p := os.Args[1] // ポート番号
-	l, err := net.Listen("tcp", ":"+p)
-	if err != nil {
-		log.Fatalf("failed to listen port %s: %v", p, err)
-	}
 	if err := run(context.Background(), l); err != nil {
 		log.Printf("failed to terminate server: %v", err)
+		os.Exit(1)
 	}
 }
 
-// 動的に選択されたポート番号でリッスンし、リクエストパスをレスポンスとして返すHTTPサーバーを起動
-func run(ctx context.Context, l net.Listener) error {
+// 環境変数から読み込んだポート番号でリッスンし、リクエストパスをレスポンスとして返すHTTPサーバーを起動
+func run(ctx context.Context) error {
+	cfg, err := config.New()
+	if err != nil {
+		return err
+	}
+	l, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
+	if err != nil {
+		log.Fatalf("failed to listen port %s: %v", cfg.Port, err)
+	}
+	url := fmt.Sprintf("http://%s", l.Addr().String())
+	log.Printf("start with: %v", url)
 	s := &http.Server{
 		// 引数で受け取ったnet.Listenerを利用するため、
 		// Addrフィールドは指定しない
