@@ -5,11 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/t-tazy/my_portfolio_api/config"
 )
@@ -24,9 +20,6 @@ func main() {
 
 // 環境変数から読み込んだポート番号でリッスンし、リクエストパスをレスポンスとして返すHTTPサーバーを起動
 func run(ctx context.Context) error {
-	// シグナルをハンドリング
-	ctx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
-	defer stop()
 	cfg, err := config.New()
 	if err != nil {
 		return err
@@ -37,33 +30,8 @@ func run(ctx context.Context) error {
 	}
 	url := fmt.Sprintf("http://%s", l.Addr().String())
 	log.Printf("start with: %v", url)
-	s := &http.Server{
-		// 引数で受け取ったnet.Listenerを利用するため、
-		// Addrフィールドは指定しない
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			// 実験用
-			time.Sleep(5 * time.Second)
-			fmt.Fprintf(w, "Hello, %s!", r.URL.Path[1:])
-		}),
-	}
-	errCh := make(chan error)
 
-	// 別ゴルーチンでHTTPサーバーを起動
-	go func() {
-		// Serveメソッドに変更
-		if err := s.Serve(l); err != nil && err != http.ErrServerClosed {
-			log.Printf("failed to close: %+v", err)
-			errCh <- err
-		}
-		errCh <- nil
-	}()
-
-	// コンテキストを通じて処理の中断を検知したとき
-	// ShutdownメソッドでHTTPサーバーの機能を終了する
-	<-ctx.Done()
-	if err := s.Shutdown(context.Background()); err != nil {
-		log.Printf("failed to shutdown: %+v", err)
-	}
-
-	return <-errCh
+	mux := NewMux()
+	s := NewServer(l, mux)
+	return s.Run(ctx)
 }
