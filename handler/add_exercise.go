@@ -35,6 +35,7 @@ func (ae *AddExercise) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		RespondJSON(ctx, w, &ErrResponse{
 			Message: err.Error(),
 		}, http.StatusBadRequest)
+		return
 	}
 
 	e := &entity.Exercise{
