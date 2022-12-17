@@ -10,7 +10,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-// レスポンスと期待値を比較検証するテスト用ヘルパー
+// JSONを解析し、比較検証するテスト用ヘルパー
 func AssertJSON(t *testing.T, want, got []byte) {
 	t.Helper()
 
@@ -27,7 +27,8 @@ func AssertJSON(t *testing.T, want, got []byte) {
 	}
 }
 
-func AssertResponse(t *testing.T, got *http.Response, status int, body []byte) {
+// レスポンスと期待値を比較検証するテスト用ヘルパー
+func AssertResponse(t *testing.T, got *http.Response, status int, want []byte) {
 	t.Helper()
 
 	t.Cleanup(func() { _ = got.Body.Close() })
@@ -39,12 +40,12 @@ func AssertResponse(t *testing.T, got *http.Response, status int, body []byte) {
 	if got.StatusCode != status {
 		t.Fatalf("want status %d, but got %d, body: %q", status, got.StatusCode, gb)
 	}
-	if len(gb) == 0 && len(body) == 0 {
+	if len(gb) == 0 && len(want) == 0 {
 		// 期待としても実体としてもレスポンスボディがないため
 		// AssertJSONを呼ぶ必要がない
 		return
 	}
-	AssertJSON(t, body, gb)
+	AssertJSON(t, want, gb)
 }
 
 // ゴールデンテスト用
