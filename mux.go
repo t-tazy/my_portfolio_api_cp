@@ -1,16 +1,21 @@
 package main
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
+	"github.com/t-tazy/my_portfolio_api/clock"
+	"github.com/t-tazy/my_portfolio_api/config"
 	"github.com/t-tazy/my_portfolio_api/handler"
 	"github.com/t-tazy/my_portfolio_api/store"
 )
 
+// 引数としてDBへの接続情報を受け取る
 // マルチプレクサを返す(ルーティング情報を持つ)
-func NewMux() http.Handler {
+// db.Close()を実行する無名関数を返す
+func NewMux(ctx context.Context, cfg *config.Config) (http.Handler, func(), error) {
 	mux := chi.NewRouter()
 	// HTTPサーバーが稼働中か確認するための/healthエンドポイントを宣言
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -20,10 +25,15 @@ func NewMux() http.Handler {
 	})
 
 	v := validator.New()
-	ae := &handler.AddExercise{Store: store.Exercises, Validator: v}
+	db, cleanup, err := store.New(ctx, cfg)
+	if err != nil {
+		return nil, cleanup, err
+	}
+	r := store.Repository{Clocker: clock.RealClocker{}}
+	ae := &handler.AddExercise{DB: db, Repo: &r, Validator: v}
 	mux.Post("/exercises", ae.ServeHTTP)
 
-	le := &handler.ListExercise{Store: store.Exercises}
+	le := &handler.ListExercise{DB: db, Repo: &r}
 	mux.Get("/exercises", le.ServeHTTP)
-	return mux
+	return mux, cleanup, nil
 }

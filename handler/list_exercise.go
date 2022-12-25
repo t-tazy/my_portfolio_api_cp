@@ -3,12 +3,14 @@ package handler
 import (
 	"net/http"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/t-tazy/my_portfolio_api/entity"
 	"github.com/t-tazy/my_portfolio_api/store"
 )
 
 type ListExercise struct {
-	Store *store.ExerciseStore
+	DB   *sqlx.DB
+	Repo *store.Repository
 }
 
 // テスト用にCreated以外のフィールドを持つようにする
@@ -18,10 +20,16 @@ type exercise struct {
 	Description string            `json:"description"`
 }
 
-// Storeから一覧を取得し、レスポンスボディに書き込む
+// DBから一覧を取得し、レスポンスボディに書き込む
 func (le *ListExercise) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exercises := le.Store.All()
+	exercises, err := le.Repo.ListExercises(ctx, le.DB)
+	if err != nil {
+		RespondJSON(ctx, w, &ErrResponse{
+			Message: err.Error(),
+		}, http.StatusInternalServerError)
+		return
+	}
 	rsp := []exercise{}
 	for _, e := range exercises {
 		rsp = append(rsp, exercise{
