@@ -5,14 +5,11 @@ import (
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/jmoiron/sqlx"
 	"github.com/t-tazy/my_portfolio_api/entity"
-	"github.com/t-tazy/my_portfolio_api/store"
 )
 
 type AddExercise struct {
-	DB        *sqlx.DB
-	Repo      *store.Repository
+	Service   AddExerciseService
 	Validator *validator.Validate
 }
 
@@ -39,11 +36,7 @@ func (ae *AddExercise) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e := &entity.Exercise{
-		Title:       body.Title,
-		Description: body.Description,
-	}
-	err := ae.Repo.AddExercise(ctx, ae.DB, e)
+	e, err := ae.Service.AddExercise(ctx, body.Title, body.Description)
 	if err != nil {
 		RespondJSON(ctx, w, &ErrResponse{
 			Message: err.Error(),

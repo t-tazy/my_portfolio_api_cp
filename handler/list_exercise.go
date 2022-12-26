@@ -3,14 +3,11 @@ package handler
 import (
 	"net/http"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/t-tazy/my_portfolio_api/entity"
-	"github.com/t-tazy/my_portfolio_api/store"
 )
 
 type ListExercise struct {
-	DB   *sqlx.DB
-	Repo *store.Repository
+	Service ListExercisesService
 }
 
 // テスト用にCreated以外のフィールドを持つようにする
@@ -23,7 +20,7 @@ type exercise struct {
 // DBから一覧を取得し、レスポンスボディに書き込む
 func (le *ListExercise) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	exercises, err := le.Repo.ListExercises(ctx, le.DB)
+	exercises, err := le.Service.ListExercises(ctx)
 	if err != nil {
 		RespondJSON(ctx, w, &ErrResponse{
 			Message: err.Error(),
