@@ -3,15 +3,13 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/t-tazy/my_portfolio_api/entity"
-	"github.com/t-tazy/my_portfolio_api/store"
 )
 
 type AddExercise struct {
-	Store     *store.ExerciseStore
+	Service   AddExerciseService
 	Validator *validator.Validate
 }
 
@@ -38,12 +36,7 @@ func (ae *AddExercise) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	e := &entity.Exercise{
-		Title:       body.Title,
-		Description: body.Description,
-		Created:     time.Now(),
-	}
-	id, err := store.Exercises.Add(e)
+	e, err := ae.Service.AddExercise(ctx, body.Title, body.Description)
 	if err != nil {
 		RespondJSON(ctx, w, &ErrResponse{
 			Message: err.Error(),
@@ -52,7 +45,7 @@ func (ae *AddExercise) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// レスポンスとしてRDBMSにより発行されたIDを返す
 	rsp := struct {
-		ID int `json:"id"`
-	}{ID: int(id)}
+		ID entity.ExerciseID `json:"id"`
+	}{ID: e.ID}
 	RespondJSON(ctx, w, rsp, http.StatusOK)
 }
