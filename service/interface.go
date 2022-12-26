@@ -8,6 +8,7 @@ import (
 )
 
 // storeパッケージの直接参照を避ける
+
 //go:generate go run github.com/matryer/moq -out moq_test.go . ExerciseAdder ExerciseLister
 type ExerciseAdder interface {
 	AddExercise(ctx context.Context, db store.Execer, e *entity.Exercise) error
