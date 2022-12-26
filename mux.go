@@ -9,6 +9,7 @@ import (
 	"github.com/t-tazy/my_portfolio_api/clock"
 	"github.com/t-tazy/my_portfolio_api/config"
 	"github.com/t-tazy/my_portfolio_api/handler"
+	"github.com/t-tazy/my_portfolio_api/service"
 	"github.com/t-tazy/my_portfolio_api/store"
 )
 
@@ -30,10 +31,15 @@ func NewMux(ctx context.Context, cfg *config.Config) (http.Handler, func(), erro
 		return nil, cleanup, err
 	}
 	r := store.Repository{Clocker: clock.RealClocker{}}
-	ae := &handler.AddExercise{DB: db, Repo: &r, Validator: v}
+	ae := &handler.AddExercise{
+		Service:   &service.AddExercise{DB: db, Repo: &r},
+		Validator: v,
+	}
 	mux.Post("/exercises", ae.ServeHTTP)
 
-	le := &handler.ListExercise{DB: db, Repo: &r}
+	le := &handler.ListExercise{
+		Service: &service.ListExercise{DB: db, Repo: &r},
+	}
 	mux.Get("/exercises", le.ServeHTTP)
 	return mux, cleanup, nil
 }
