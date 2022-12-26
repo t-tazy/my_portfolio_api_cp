@@ -2,12 +2,14 @@ package handler
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/t-tazy/my_portfolio_api/store"
+	"github.com/t-tazy/my_portfolio_api/entity"
 	"github.com/t-tazy/my_portfolio_api/testutil"
 )
 
@@ -50,8 +52,17 @@ func TestAddExercise(t *testing.T) {
 				bytes.NewReader(testutil.LoadFile(t, test.reqFile)),
 			)
 
+			moq := &AddExerciseServiceMock{}
+			moq.AddExerciseFunc = func(
+				ctx context.Context, title, description string,
+			) (*entity.Exercise, error) {
+				if test.want.status == http.StatusOK {
+					return &entity.Exercise{ID: 1}, nil
+				}
+				return nil, errors.New("error from mock")
+			}
 			sut := AddExercise{
-				Store:     store.Exercises,
+				Service:   moq,
 				Validator: validator.New(),
 			}
 			sut.ServeHTTP(w, r)
