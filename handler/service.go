@@ -8,11 +8,15 @@ import (
 
 // リクエストの解釈とレスポンスの構築以外を次のインターフェースに移譲
 
-//go:generate go run github.com/matryer/moq -out moq_test.go . ListExercisesService AddExerciseService
+//go:generate go run github.com/matryer/moq -out moq_test.go . ListExercisesService AddExerciseService RegisterUserService
 type ListExercisesService interface {
 	ListExercises(ctx context.Context) (entity.Exercises, error)
 }
 
 type AddExerciseService interface {
 	AddExercise(ctx context.Context, title, description string) (*entity.Exercise, error)
+}
+
+type RegisterUserService interface {
+	RegisterUser(ctx context.Context, name, password, role string) (*entity.User, error)
 }
