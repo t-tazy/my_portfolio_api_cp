@@ -41,5 +41,12 @@ func NewMux(ctx context.Context, cfg *config.Config) (http.Handler, func(), erro
 		Service: &service.ListExercise{DB: db, Repo: &r},
 	}
 	mux.Get("/exercises", le.ServeHTTP)
+
+	ru := &handler.RegisterUser{
+		Service:   &service.RegisterUser{DB: db, Repo: &r},
+		Validator: v,
+	}
+	mux.Post("/register", ru.ServeHTTP)
+
 	return mux, cleanup, nil
 }
