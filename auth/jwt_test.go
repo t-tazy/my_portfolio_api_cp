@@ -67,7 +67,7 @@ func TestJWTer_GetToken(t *testing.T) {
 		Issuer(`github.com/t-tazy/my_portfolio_api`).
 		Subject("access_token").
 		IssuedAt(c.Now()).
-		Expiration(c.Now()).
+		Expiration(c.Now().Add(30*time.Minute)).
 		Claim(RoleKey, "test").          // 独自クレーム
 		Claim(UserNameKey, "test_user"). // 独自クレーム
 		Build()
@@ -127,7 +127,7 @@ func TestJWTer_GetToken_NG(t *testing.T) {
 		Issuer(`github.com/t-tazy/my_portfolio_api`).
 		Subject("access_token").
 		IssuedAt(c.Now()).
-		Expiration(c.Now()).
+		Expiration(c.Now().Add(30*time.Minute)).
 		Claim(RoleKey, "test").          // 独自クレーム
 		Claim(UserNameKey, "test_user"). // 独自クレーム
 		Build()
