@@ -10,6 +10,8 @@ type Config struct {
 	DBUser     string `env:"PORTFOLIO_DB_USER" envDefault:"portfolio"`
 	DBPassword string `env:"PORTFOLIO_DB_PASSWORD" envDefault:"portfolio"`
 	DBName     string `env:"PORTFOLIO_DB_NAME" envDefault:"portfolio"`
+	RedisHost  string `env:"PORTFOLIO_REDIS_HOST" envdefault:"127.0.0.1"`
+	RedisPort  int    `env:"PORTFOLIO_REDIS_PORT" envdefault:"36379"`
 }
 
 // 環境変数から情報を取得
