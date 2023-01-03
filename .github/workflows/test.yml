@@ -37,6 +37,7 @@ jobs:
         go-version: '>=1.19'
     - uses: actions/checkout@v3
     - run: |
+        mkdir auth/cert && openssl genrsa 4096 > auth/cert/secret.pem && openssl rsa -pubout < auth/cert/secret.pem > auth/cert/public.pem
         go install github.com/k0kubun/sqldef/cmd/mysqldef@latest
         mysqldef -u portfolio -p portfolio -h 127.0.0.1 -P 3306 portfolio < ./_tools/mysql/schema.sql
     - run: go test ./... -coverprofile=coverage.out
